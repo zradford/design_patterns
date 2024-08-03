@@ -85,6 +85,7 @@ end
 
 
 # client code
+puts "__________________\n\n\n"
 
 subject = ConcreteSubject.new
 
@@ -97,9 +98,9 @@ subject.attach(observer_b)
 observer_c = ConcreteObserverC.new
 subject.attach(observer_c)
 
-5.times { subject.some_business_logic }
+2.times { subject.some_business_logic }
 
 subject.detach(observer_a)
 subject.detach(observer_c)
 
-3.times { subject.some_business_logic }
+1.times { subject.some_business_logic }

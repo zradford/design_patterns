@@ -91,6 +91,8 @@ class ALogger < BaseComponent
   end
 end
 
+puts "__________________\n\n\n"
+
 # Client code:
 c1 = Component1.new
 c2 = Component2.new
