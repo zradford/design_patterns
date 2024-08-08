@@ -1,12 +1,12 @@
 module Mediatable
   attr_accessor :mediator
-  
+
   def initialize
     @mediator = nil
   end
-  
+
   def self.included(base) base.extend(ClassMethods) end
-    
+
   module ClassMethods
     def notify(event)
       @mediators.each { _1.notify self, 'A' }
@@ -22,11 +22,11 @@ module Observable
   def attach(observer)
     @observers << observer
   end
-  
+
   def detach(observer)
     @observers.delete observer
   end
-  
+
   def notify_observer
     @observers.each { _1.update_observer(self) }
   end
@@ -51,7 +51,7 @@ class TestActor
   def important_business
     3.times do |i|
       puts; puts 'IMPORTANT BUSINESS' 
-      
+
       @mediator.notify_mediator(self, "~~#{i}~~")
       notify_observer
     end
