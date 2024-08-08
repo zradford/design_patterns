@@ -9,17 +9,22 @@ class CsvImporter
   end
 
   def import
+    before
+
     CSV::foreach(file, :headers => :first_row) do |row|
-      before
-      @row = parse_data(row)
+      @row = row
       next if filter?
+      
+      @data = parse_data
       manipulate_data
       store
       after
     end
+
+    return result if @result
   end
   
-  def parse_data(row)
+  def parse_data
     raise NotImplementedError, "#{self.class} has not implemented method: '#{__method__}'"
   end
   
@@ -34,19 +39,30 @@ class CsvImporter
   def before; end
   def after; end
   def manipulate_data; end
+  def result; @result end
+end
+
+module Storable
+  def before
+    @result = []
+  end
+
+  def store
+    @result << @data
+  end
 end
 
 class PersonImporter < CsvImporter
-  def parse_data(row)
-    Person.from_row(row)
+  prepend Storable
+
+  def parse_data
+    Person.from_row(@row)
   end
-  
+end
+
+class ApplebeesImporter < PersonImporter
   def manipulate_data
-    @row.company = "Applebee's"
-  end
-  
-  def store
-    puts @row.to_s
+    @data.company = "Applebee's"
   end
 end
 
@@ -56,23 +72,21 @@ class SpecializedPersonImporter < PersonImporter
     @letter = letter
   end
 
-  def parse_data(row)
-    puts "Is #{@letter.upcase} the letter #{row["first_name"][0]}?"
+  def parse_data
+    puts "Is #{@letter.upcase} the letter #{@row["first_name"][0]}?"
     super
   end
   
   def filter?
-    !@row.first_name.downcase.start_with? @letter
+    !@row["first_name"].downcase.start_with? @letter
   end
 end
 
 class AddressImporter < CsvImporter
-  def parse_data(row)
-    Address.from_row(row)
-  end
+  prepend Storable
   
-  def store
-    puts @row.to_s
+  def parse_data
+    Address.from_row(@row)
   end
 end
 
@@ -135,9 +149,17 @@ end
 
 csv_file = File.new('./test.csv')
 def import_runner(importer)
-  importer.import
+  puts Time.now
+  sleep 1
+  puts importer.import
+  puts Time.now
 end
 
-# import_runner(PersonImporter.new(csv_file))
-# import_runner(AddressImporter.new(csv_file))
+puts "\n----------------------------------------------------------\n"
+import_runner(PersonImporter.new(csv_file))
+puts "\n----------------------------------------------------------\n"
+import_runner(ApplebeesImporter.new(csv_file))
+puts "\n----------------------------------------------------------\n"
+import_runner(AddressImporter.new(csv_file))
+puts "\n----------------------------------------------------------\n"
 import_runner(SpecializedPersonImporter.new(csv_file, letter: 'a'))
